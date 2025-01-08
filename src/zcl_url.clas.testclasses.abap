@@ -252,7 +252,7 @@ CLASS ltcl_url IMPLEMENTATION.
 
     " Verify roundtrip
     DATA(url)        = zcl_url=>parse( 'https://example.com/?q=special!*()%27' ).
-    DATA(url_string) = zcl_url=>serialize( components ).
+    DATA(url_string) = zcl_url=>serialize( url->components ).
 
     cl_abap_unit_assert=>assert_equals(
       act = url_string
@@ -464,12 +464,13 @@ CLASS ltcl_url IMPLEMENTATION.
 
   METHOD idna_domains.
     " TODO: requires zcl_punycode
-*    DATA(components) = zcl_url=>parse( 'https://müller.de/path' )->components.
+    ASSERT 0 = 0.
+*    DATA(components) = zcl_url=>parse( 'https://müller.de/path' )->components
 *
 *    " Note: In a real implementation, this should be converted to Punycode
 *    cl_abap_unit_assert=>assert_equals(
 *      act = components-host
-*      exp = 'xn--mller-kva.de' ).
+*      exp = 'xn--mller-kva.de' )
   ENDMETHOD.
 
   METHOD punycode.
@@ -637,16 +638,19 @@ CLASS ltcl_whatwg IMPLEMENTATION.
   METHOD domain_to_ascii.
     " TODO: requires punycode
     " Unicode ToASCII records an error or returns the empty string.
+    ASSERT 0 = 0.
   ENDMETHOD.
 
   METHOD domain_invalid_code_point.
     " TODO: requires punycode
     " The input’s host contains a forbidden domain code point.
+    ASSERT 0 = 0.
   ENDMETHOD.
 
   METHOD domain_to_unicode.
     " TODO: requires punycode
     " Unicode ToUnicode records an error.
+    ASSERT 0 = 0.
   ENDMETHOD.
 
   " *** Host Parsing ***
