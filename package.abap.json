@@ -33,6 +33,9 @@
     "type": "github",
     "url": "https://github.com/sponsors/abappm"
   },
+  "dependencies": {
+    "error": "^1.0.0"
+  },
   "engines": {
     "abap": ">=7.50",
     "apm": ">=1"
