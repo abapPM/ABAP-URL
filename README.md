@@ -12,6 +12,16 @@ Limitations: No support for punycode.
 
 NO WARRANTIES, [MIT License](https://github.com/abapPM/ABAP-URL/blob/main/LICENSE)
 
+```
+┌───────────────────────────────────────────────────────────────────────────────────────────────────┐
+"  https:   //    user   :   pass   @ sub.example.com : 8080   /p/a/t/h  ?  query=string     #hash  "
+│  scheme  │  │ username │ password │    host         │ port │   path   │ |    query     │ fragment │
+├──────────┴──┴──────────┴──────────┴─────────────────┴──────┴──────────┴─┴──────────────┴──────────┤
+│                                              url                                                  │
+└───────────────────────────────────────────────────────────────────────────────────────────────────┘
+(All spaces in the "" line should be ignored. They are purely for formatting.)
+```
+
 ## Usage
 
 Parse a URL into it's component:
