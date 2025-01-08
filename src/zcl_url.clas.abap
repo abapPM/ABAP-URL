@@ -369,7 +369,7 @@ CLASS zcl_url IMPLEMENTATION.
       IF NOT matches( val = port regex = '^\d+$' ).
         zcx_error=>raise( 'Invalid port number' ).
       ENDIF.
-      IF NOT port BETWEEN 0 AND 65535.
+      IF port NOT BETWEEN 0 AND 65535.
         zcx_error=>raise( 'Port number out of range' ).
       ENDIF.
     ENDIF.
@@ -516,7 +516,7 @@ CLASS zcl_url IMPLEMENTATION.
       IF NOT matches( val = part regex = '^\d+$' ).
         zcx_error=>raise( 'Invalid IPv4 address: non-numeric segment' ).
       ENDIF.
-      IF NOT part BETWEEN 0 AND 255.
+      IF part NOT BETWEEN 0 AND 255.
         zcx_error=>raise( 'Invalid IPv4 address: segment exceeds 255' ).
       ENDIF.
     ENDLOOP.

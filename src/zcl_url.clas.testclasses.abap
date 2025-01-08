@@ -9,12 +9,10 @@ CLASS ltcl_url DEFINITION FINAL FOR TESTING
       basic_url FOR TESTING RAISING zcx_error,
       empty_url FOR TESTING RAISING zcx_error,
       relative_url FOR TESTING RAISING zcx_error,
-
       " Scheme Tests
       special_schemes FOR TESTING RAISING zcx_error,
       nonspecial_schemes FOR TESTING RAISING zcx_error,
       invalid_scheme FOR TESTING RAISING zcx_error,
-
       " Authority Tests
       userinfo FOR TESTING RAISING zcx_error,
       empty_userinfo FOR TESTING RAISING zcx_error,
@@ -23,13 +21,11 @@ CLASS ltcl_url DEFINITION FINAL FOR TESTING
       ipv6_host FOR TESTING RAISING zcx_error,
       invalid_ipv6_host FOR TESTING RAISING zcx_error,
       port_validation FOR TESTING RAISING zcx_error,
-
       " Path Tests
       path_normalization FOR TESTING RAISING zcx_error,
       empty_path FOR TESTING RAISING zcx_error,
       dot_segments FOR TESTING RAISING zcx_error,
       special_path_chars FOR TESTING RAISING zcx_error,
-
       " Query String Tests
       query_basic FOR TESTING RAISING zcx_error,
       query_special_chars FOR TESTING RAISING zcx_error,
@@ -39,7 +35,6 @@ CLASS ltcl_url DEFINITION FINAL FOR TESTING
       query_multiple_params FOR TESTING RAISING zcx_error,
       query_no_value FOR TESTING RAISING zcx_error,
       query_empty_pairs FOR TESTING RAISING zcx_error,
-
       " Fragment Tests
       fragment_basic FOR TESTING RAISING zcx_error,
       fragment_special_chars FOR TESTING RAISING zcx_error,
@@ -47,16 +42,13 @@ CLASS ltcl_url DEFINITION FINAL FOR TESTING
       fragment_with_query FOR TESTING RAISING zcx_error,
       multiple_hashes FOR TESTING RAISING zcx_error,
       query_fragment_combis FOR TESTING RAISING zcx_error,
-
       " Percent Encoding/Decoding
       percent_encoding FOR TESTING RAISING zcx_error,
       percent_decoding FOR TESTING RAISING zcx_error,
       invalid_percent_encoding FOR TESTING RAISING zcx_error,
-
       " IDNA Processing
       idna_domains FOR TESTING RAISING zcx_error,  " TODO
       punycode FOR TESTING RAISING zcx_error,
-
       " Serialization
       url_serialization FOR TESTING RAISING zcx_error,
       special_url_serialization FOR TESTING RAISING zcx_error.
@@ -227,8 +219,7 @@ CLASS ltcl_url IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD special_path_chars.
-    DATA(components) = zcl_url=>parse(
-      'https://example.com/path%20with%20spaces/file.txt' )->components.
+    DATA(components) = zcl_url=>parse( 'https://example.com/path%20with%20spaces/file.txt' )->components.
 
     cl_abap_unit_assert=>assert_equals(
       act = components-path
@@ -260,9 +251,11 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'q=special!*()%27' ).
 
     " Verify roundtrip
-    DATA(url) = zcl_url=>parse( 'https://example.com/?q=special!*()%27' )->serialize( components ).
+    DATA(url)        = zcl_url=>parse( 'https://example.com/?q=special!*()%27' ).
+    DATA(url_string) = zcl_url=>serialize( components ).
+
     cl_abap_unit_assert=>assert_equals(
-      act = url
+      act = url_string
       exp = 'https://example.com/?q=special!*()%27' ).
   ENDMETHOD.
 
@@ -500,6 +493,7 @@ CLASS ltcl_url IMPLEMENTATION.
       fragment = 'section' ).
 
     DATA(url) = zcl_url=>serialize( components ).
+
     cl_abap_unit_assert=>assert_equals(
       act = url
       exp = 'https://user:pass@example.com:8080/path/to/resource?key=value#section' ).
@@ -510,10 +504,10 @@ CLASS ltcl_url IMPLEMENTATION.
     DATA(components) = VALUE zcl_url=>ty_url_components(
       scheme = 'file'
       host   = ''
-      path   = '/C:/path/to/file.txt'
-    ).
+      path   = '/C:/path/to/file.txt' ).
 
     DATA(url) = zcl_url=>serialize( components ).
+
     cl_abap_unit_assert=>assert_equals(
       act = url
       exp = 'file:///C:/path/to/file.txt' ).
@@ -523,10 +517,10 @@ CLASS ltcl_url IMPLEMENTATION.
       scheme   = 'https'
       username = ''
       password = 'pass'
-      host     = 'example.com'
-    ).
+      host     = 'example.com' ).
 
     url = zcl_url=>serialize( components ).
+
     cl_abap_unit_assert=>assert_equals(
       act = url
       exp = 'https://:pass@example.com' ).
