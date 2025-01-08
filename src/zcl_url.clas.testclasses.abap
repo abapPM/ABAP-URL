@@ -6,66 +6,66 @@ CLASS ltcl_url DEFINITION FINAL FOR TESTING
 
     METHODS:
       " Basic URL Parsing
-      test_basic_url FOR TESTING RAISING zcx_error,
-      test_empty_url FOR TESTING RAISING zcx_error,
-      test_relative_url FOR TESTING RAISING zcx_error,
+      basic_url FOR TESTING RAISING zcx_error,
+      empty_url FOR TESTING RAISING zcx_error,
+      relative_url FOR TESTING RAISING zcx_error,
 
       " Scheme Tests
-      test_special_schemes FOR TESTING RAISING zcx_error,
-      test_nonspecial_schemes FOR TESTING RAISING zcx_error,
-      test_invalid_scheme FOR TESTING RAISING zcx_error,
+      special_schemes FOR TESTING RAISING zcx_error,
+      nonspecial_schemes FOR TESTING RAISING zcx_error,
+      invalid_scheme FOR TESTING RAISING zcx_error,
 
       " Authority Tests
-      test_userinfo FOR TESTING RAISING zcx_error,
-      test_empty_userinfo FOR TESTING RAISING zcx_error,
-      test_credentials_with_atmark FOR TESTING RAISING zcx_error,
-      test_ipv4_host FOR TESTING RAISING zcx_error,
-      test_ipv6_host FOR TESTING RAISING zcx_error,
-      test_invalid_ipv6_host FOR TESTING RAISING zcx_error,
-      test_port_validation FOR TESTING RAISING zcx_error,
+      userinfo FOR TESTING RAISING zcx_error,
+      empty_userinfo FOR TESTING RAISING zcx_error,
+      credentials_with_atmark FOR TESTING RAISING zcx_error,
+      ipv4_host FOR TESTING RAISING zcx_error,
+      ipv6_host FOR TESTING RAISING zcx_error,
+      invalid_ipv6_host FOR TESTING RAISING zcx_error,
+      port_validation FOR TESTING RAISING zcx_error,
 
       " Path Tests
-      test_path_normalization FOR TESTING RAISING zcx_error,
-      test_empty_path FOR TESTING RAISING zcx_error,
-      test_dot_segments FOR TESTING RAISING zcx_error,
-      test_special_path_chars FOR TESTING RAISING zcx_error,
+      path_normalization FOR TESTING RAISING zcx_error,
+      empty_path FOR TESTING RAISING zcx_error,
+      dot_segments FOR TESTING RAISING zcx_error,
+      special_path_chars FOR TESTING RAISING zcx_error,
 
       " Query String Tests
-      test_query_basic FOR TESTING RAISING zcx_error,
-      test_query_special_chars FOR TESTING RAISING zcx_error,
-      test_query_encoding FOR TESTING RAISING zcx_error,
-      test_query_space_handling FOR TESTING RAISING zcx_error,
-      test_query_plus_handling FOR TESTING RAISING zcx_error,
-      test_query_multiple_params FOR TESTING RAISING zcx_error,
-      test_query_no_value FOR TESTING RAISING zcx_error,
-      test_query_empty_pairs FOR TESTING RAISING zcx_error,
+      query_basic FOR TESTING RAISING zcx_error,
+      query_special_chars FOR TESTING RAISING zcx_error,
+      query_encoding FOR TESTING RAISING zcx_error,
+      query_space_handling FOR TESTING RAISING zcx_error,
+      query_plus_handling FOR TESTING RAISING zcx_error,
+      query_multiple_params FOR TESTING RAISING zcx_error,
+      query_no_value FOR TESTING RAISING zcx_error,
+      query_empty_pairs FOR TESTING RAISING zcx_error,
 
       " Fragment Tests
-      test_fragment_basic FOR TESTING RAISING zcx_error,
-      test_fragment_special_chars FOR TESTING RAISING zcx_error,
-      test_fragment_encoding FOR TESTING RAISING zcx_error,
-      test_fragment_with_query FOR TESTING RAISING zcx_error,
-      test_multiple_hashes FOR TESTING RAISING zcx_error,
-      test_query_fragment_combis FOR TESTING RAISING zcx_error,
+      fragment_basic FOR TESTING RAISING zcx_error,
+      fragment_special_chars FOR TESTING RAISING zcx_error,
+      fragment_encoding FOR TESTING RAISING zcx_error,
+      fragment_with_query FOR TESTING RAISING zcx_error,
+      multiple_hashes FOR TESTING RAISING zcx_error,
+      query_fragment_combis FOR TESTING RAISING zcx_error,
 
       " Percent Encoding/Decoding
-      test_percent_encoding FOR TESTING RAISING zcx_error,
-      test_percent_decoding FOR TESTING RAISING zcx_error,
-      test_invalid_percent_encoding FOR TESTING RAISING zcx_error,
+      percent_encoding FOR TESTING RAISING zcx_error,
+      percent_decoding FOR TESTING RAISING zcx_error,
+      invalid_percent_encoding FOR TESTING RAISING zcx_error,
 
       " IDNA Processing
-      test_idna_domains FOR TESTING RAISING zcx_error,
-      test_punycode FOR TESTING RAISING zcx_error,
+      idna_domains FOR TESTING RAISING zcx_error,  " TODO
+      punycode FOR TESTING RAISING zcx_error,
 
       " Serialization
-      test_url_serialization FOR TESTING RAISING zcx_error,
-      test_special_url_serialization FOR TESTING RAISING zcx_error.
+      url_serialization FOR TESTING RAISING zcx_error,
+      special_url_serialization FOR TESTING RAISING zcx_error.
 
 ENDCLASS.
 
 CLASS ltcl_url IMPLEMENTATION.
 
-  METHOD test_basic_url.
+  METHOD basic_url.
     DATA(components) = zcl_url=>parse( 'https://example.com/path?query#fragment' )->components.
 
     cl_abap_unit_assert=>assert_equals(
@@ -85,7 +85,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'fragment' ).
   ENDMETHOD.
 
-  METHOD test_empty_url.
+  METHOD empty_url.
     TRY.
         zcl_url=>parse( '' ).
         cl_abap_unit_assert=>fail( 'Should raise exception for empty URL' ).
@@ -94,7 +94,7 @@ CLASS ltcl_url IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
-  METHOD test_relative_url.
+  METHOD relative_url.
     TRY.
         zcl_url=>parse( '/path/to/resource' ).
         cl_abap_unit_assert=>fail( 'Should raise exception for relative URL' ).
@@ -103,18 +103,18 @@ CLASS ltcl_url IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
-  METHOD test_special_schemes.
+  METHOD special_schemes.
     DATA(components) = zcl_url=>parse( 'https://example.com' )->components.
     cl_abap_unit_assert=>assert_true( components-is_special ).
 
-    components = zcl_url=>parse( 'file:///path' )->components.
+    components = zcl_url=>parse( 'file://c:/path' )->components.
     cl_abap_unit_assert=>assert_true( components-is_special ).
 
     components = zcl_url=>parse( 'ftp://example.com' )->components.
     cl_abap_unit_assert=>assert_true( components-is_special ).
   ENDMETHOD.
 
-  METHOD test_nonspecial_schemes.
+  METHOD nonspecial_schemes.
     DATA(components) = zcl_url=>parse( 'git://example.com' )->components.
     cl_abap_unit_assert=>assert_false( components-is_special ).
 
@@ -122,7 +122,7 @@ CLASS ltcl_url IMPLEMENTATION.
     cl_abap_unit_assert=>assert_false( components-is_special ).
   ENDMETHOD.
 
-  METHOD test_invalid_scheme.
+  METHOD invalid_scheme.
     TRY.
         zcl_url=>parse( '3https://example.com' ).
         cl_abap_unit_assert=>fail( 'Should raise exception for invalid scheme' ).
@@ -131,7 +131,7 @@ CLASS ltcl_url IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
-  METHOD test_userinfo.
+  METHOD userinfo.
     DATA(components) = zcl_url=>parse( 'https://user:pass@example.com' )->components.
 
     cl_abap_unit_assert=>assert_equals(
@@ -142,7 +142,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'pass' ).
   ENDMETHOD.
 
-  METHOD test_empty_userinfo.
+  METHOD empty_userinfo.
     DATA(components) = zcl_url=>parse( 'https://@example.com' )->components.
 
     cl_abap_unit_assert=>assert_equals(
@@ -153,7 +153,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = '' ).
   ENDMETHOD.
 
-  METHOD test_credentials_with_atmark.
+  METHOD credentials_with_atmark.
     DATA(components) = zcl_url=>parse( 'https://user%40local:pass@example.com' )->components.
 
     cl_abap_unit_assert=>assert_equals(
@@ -161,7 +161,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'user@local' ).
   ENDMETHOD.
 
-  METHOD test_ipv4_host.
+  METHOD ipv4_host.
     DATA(components) = zcl_url=>parse( 'https://192.168.0.1/path' )->components.
 
     cl_abap_unit_assert=>assert_equals(
@@ -169,7 +169,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = '192.168.0.1' ).
   ENDMETHOD.
 
-  METHOD test_ipv6_host.
+  METHOD ipv6_host.
     DATA(components) = zcl_url=>parse( 'https://[2001:db8::1]/path' )->components.
 
     cl_abap_unit_assert=>assert_equals(
@@ -177,7 +177,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = '2001:db8::1' ).
   ENDMETHOD.
 
-  METHOD test_invalid_ipv6_host.
+  METHOD invalid_ipv6_host.
     TRY.
         zcl_url=>parse( 'https://[2001:db8:::1]/path' ).
         cl_abap_unit_assert=>fail( 'Should raise exception for invalid IPv6' ).
@@ -186,7 +186,7 @@ CLASS ltcl_url IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
-  METHOD test_port_validation.
+  METHOD port_validation.
     DATA(components) = zcl_url=>parse( 'https://example.com:8080' )->components.
 
     cl_abap_unit_assert=>assert_equals(
@@ -201,7 +201,7 @@ CLASS ltcl_url IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
-  METHOD test_path_normalization.
+  METHOD path_normalization.
     DATA(components) = zcl_url=>parse( 'https://example.com/a/./b/../../c/' )->components.
 
     cl_abap_unit_assert=>assert_equals(
@@ -209,16 +209,16 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = '/c/' ).
   ENDMETHOD.
 
-  METHOD test_empty_path.
+  METHOD empty_path.
     DATA(components) = zcl_url=>parse( 'https://example.com' )->components.
 
     cl_abap_unit_assert=>assert_equals(
-    " ... continuing from test_empty_path
+    " ... continuing from empty_path
       act = components-path
       exp = '' ).
   ENDMETHOD.
 
-  METHOD test_dot_segments.
+  METHOD dot_segments.
     DATA(components) = zcl_url=>parse( 'https://example.com/a/../b/./c' )->components.
 
     cl_abap_unit_assert=>assert_equals(
@@ -226,7 +226,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = '/b/c' ).
   ENDMETHOD.
 
-  METHOD test_special_path_chars.
+  METHOD special_path_chars.
     DATA(components) = zcl_url=>parse(
       'https://example.com/path%20with%20spaces/file.txt' )->components.
 
@@ -235,7 +235,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = '/path with spaces/file.txt' ).
   ENDMETHOD.
 
-  METHOD test_query_basic.
+  METHOD query_basic.
     " Basic query parameter parsing
     DATA(components) = zcl_url=>parse( 'https://example.com/?name=value' )->components.
 
@@ -251,7 +251,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'a=1&b=2' ).
   ENDMETHOD.
 
-  METHOD test_query_special_chars.
+  METHOD query_special_chars.
     " Query with special characters that should be percent-encoded
     DATA(components) = zcl_url=>parse( 'https://example.com/?q=special!*()%27' )->components.
 
@@ -266,7 +266,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'https://example.com/?q=special!*()%27' ).
   ENDMETHOD.
 
-  METHOD test_query_encoding.
+  METHOD query_encoding.
     " Test various encoding scenarios in query parameters
     DATA(components) = zcl_url=>parse( 'https://example.com/?q=%20%2B%3F%26' )->components.
 
@@ -282,7 +282,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'q=ü' ).
   ENDMETHOD.
 
-  METHOD test_query_space_handling.
+  METHOD query_space_handling.
     " Space handling in query strings
     DATA(components) = zcl_url=>parse( 'https://example.com/?q=hello%20world' )->components.
 
@@ -304,7 +304,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'https://example.com/?q=hello%20world' ).
   ENDMETHOD.
 
-  METHOD test_query_plus_handling.
+  METHOD query_plus_handling.
     " Plus sign handling in query strings
     DATA(components) = zcl_url=>parse( 'https://example.com/?q=hello+world' )->components.
 
@@ -322,7 +322,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'q=1+1' ).
   ENDMETHOD.
 
-  METHOD test_query_multiple_params.
+  METHOD query_multiple_params.
     " Multiple parameters with various formats
     DATA(components) = zcl_url=>parse( 'https://example.com/?a=1&b=&c=3&d' )->components.
 
@@ -331,7 +331,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'a=1&b=&c=3&d' ).
   ENDMETHOD.
 
-  METHOD test_query_no_value.
+  METHOD query_no_value.
     " Parameters without values
     DATA(components) = zcl_url=>parse( 'https://example.com/?key' )->components.
 
@@ -346,7 +346,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'key=' ).
   ENDMETHOD.
 
-  METHOD test_query_empty_pairs.
+  METHOD query_empty_pairs.
     " Empty parameter pairs
     DATA(components) = zcl_url=>parse( 'https://example.com/?&&&&a=1' )->components.
 
@@ -355,7 +355,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = '&&&&a=1' ).
   ENDMETHOD.
 
-  METHOD test_fragment_basic.
+  METHOD fragment_basic.
     " Basic fragment handling
     DATA(components) = zcl_url=>parse( 'https://example.com/#section1' )->components.
 
@@ -364,7 +364,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'section1' ).
   ENDMETHOD.
 
-  METHOD test_fragment_special_chars.
+  METHOD fragment_special_chars.
     " Fragment with special characters
     DATA(components) = zcl_url=>parse( 'https://example.com/#section?query&more' )->components.
 
@@ -374,7 +374,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'section?query&more' ).
   ENDMETHOD.
 
-  METHOD test_fragment_encoding.
+  METHOD fragment_encoding.
     " Encoded characters in fragment
     DATA(components) = zcl_url=>parse( 'https://example.com/#section%20with%20spaces' )->components.
 
@@ -389,7 +389,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'https://example.com/#section%20with%20spaces' ).
   ENDMETHOD.
 
-  METHOD test_fragment_with_query.
+  METHOD fragment_with_query.
     " Fragment after query string
     DATA(components) = zcl_url=>parse( 'https://example.com/?q=1#fragment' )->components.
 
@@ -418,7 +418,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'section#subsection' ).
   ENDMETHOD.
 
-  METHOD test_multiple_hashes.
+  METHOD multiple_hashes.
     " Multiple hash marks
     DATA(components) = zcl_url=>parse( 'https://example.com/#first#second#third' )->components.
 
@@ -428,7 +428,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'first#second#third' ).
   ENDMETHOD.
 
-  METHOD test_percent_encoding.
+  METHOD percent_encoding.
     DATA(components) = zcl_url=>parse( 'https://example.com/path%20with%20spaces/%23fragment' )->components.
 
     cl_abap_unit_assert=>assert_equals(
@@ -442,7 +442,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'https://example.com/path%20with%20spaces/%23fragment' ).
   ENDMETHOD.
 
-  METHOD test_percent_decoding.
+  METHOD percent_decoding.
     DATA(components) = zcl_url=>parse( 'https://user%3Aname:pass%40word@example.com' )->components.
 
     cl_abap_unit_assert=>assert_equals(
@@ -453,7 +453,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'pass@word' ).
   ENDMETHOD.
 
-  METHOD test_invalid_percent_encoding.
+  METHOD invalid_percent_encoding.
     " Test incomplete percent encoding
     DATA(components) = zcl_url=>parse( 'https://example.com/path%2' )->components.
 
@@ -469,7 +469,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = '/path%XY' ).
   ENDMETHOD.
 
-  METHOD test_idna_domains.
+  METHOD idna_domains.
     " TODO: requires zcl_punycode
 *    DATA(components) = zcl_url=>parse( 'https://müller.de/path' )->components.
 *
@@ -479,7 +479,7 @@ CLASS ltcl_url IMPLEMENTATION.
 *      exp = 'xn--mller-kva.de' ).
   ENDMETHOD.
 
-  METHOD test_punycode.
+  METHOD punycode.
     DATA(components) = zcl_url=>parse( 'https://xn--mnchen-3ya.de/path' )->components.
 
     cl_abap_unit_assert=>assert_equals(
@@ -487,7 +487,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'xn--mnchen-3ya.de' ).
   ENDMETHOD.
 
-  METHOD test_url_serialization.
+  METHOD url_serialization.
     " Test complete URL serialization
     DATA(components) = VALUE zcl_url=>ty_url_components(
       scheme   = 'https'
@@ -497,8 +497,7 @@ CLASS ltcl_url IMPLEMENTATION.
       port     = '8080'
       path     = '/path/to/resource'
       query    = 'key=value'
-      fragment = 'section'
-    ).
+      fragment = 'section' ).
 
     DATA(url) = zcl_url=>serialize( components ).
     cl_abap_unit_assert=>assert_equals(
@@ -506,7 +505,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'https://user:pass@example.com:8080/path/to/resource?key=value#section' ).
   ENDMETHOD.
 
-  METHOD test_special_url_serialization.
+  METHOD special_url_serialization.
     " Test file URL
     DATA(components) = VALUE zcl_url=>ty_url_components(
       scheme = 'file'
@@ -533,7 +532,7 @@ CLASS ltcl_url IMPLEMENTATION.
       exp = 'https://:pass@example.com' ).
   ENDMETHOD.
 
-  METHOD test_query_fragment_combis.
+  METHOD query_fragment_combis.
     " Test various combinations of query and fragment
 
     " Only path
@@ -591,4 +590,400 @@ CLASS ltcl_url IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( act = components-fragment exp = 'frag1#frag2' ).
   ENDMETHOD.
 
+ENDCLASS.
+
+" WHATWG Test Cases
+* from https://url.spec.whatwg.org/#writing
+CLASS ltcl_whatwg DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+
+    METHODS:
+      " IDNA
+      domain_to_ascii FOR TESTING RAISING zcx_error, " TODO
+      domain_invalid_code_point FOR TESTING RAISING zcx_error, " TODO
+      domain_to_unicode FOR TESTING RAISING zcx_error, " TODO
+      " Host parsing
+      host_invalid_code_point FOR TESTING RAISING zcx_error,
+      ipv4_empty_part FOR TESTING RAISING zcx_error,
+      ipv4_too_many_parts FOR TESTING RAISING zcx_error,
+      ipv4_non_numeric_part FOR TESTING RAISING zcx_error, " TODO
+      ipv4_non_decimal_part FOR TESTING RAISING zcx_error,
+      ipv4_out_of_range_part FOR TESTING RAISING zcx_error,
+      ipv6_unclosed FOR TESTING RAISING zcx_error,
+      ipv6_invalid_compression FOR TESTING RAISING zcx_error,
+      ipv6_too_many_pieces FOR TESTING RAISING zcx_error,
+      ipv6_multiple_compression FOR TESTING RAISING zcx_error,
+      ipv6_invalid_code_point FOR TESTING RAISING zcx_error,
+      ipv6_too_few_pieces FOR TESTING RAISING zcx_error,
+      ipv4_in_ipv6_too_many_pieces FOR TESTING RAISING zcx_error,
+      ipv4_in_ipv6_invalid_code_pnt FOR TESTING RAISING zcx_error,
+      ipv4_in_ipv6_out_of_range_prt FOR TESTING RAISING zcx_error,
+      ipv4_in_ipv6_too_few_parts FOR TESTING RAISING zcx_error,
+      " URL parsing
+      invalid_url_unit FOR TESTING RAISING zcx_error, " TODO
+      special_scheme_missing FOR TESTING RAISING zcx_error,
+      missing_scheme_non_rel_url FOR TESTING RAISING zcx_error,
+      invalid_reverse_solidus FOR TESTING RAISING zcx_error,
+      invalid_credentials FOR TESTING RAISING zcx_error,
+      host_missing FOR TESTING RAISING zcx_error,
+      port_out_of_range FOR TESTING RAISING zcx_error,
+      port_invalid FOR TESTING RAISING zcx_error,
+      file_invalid_win_drive_letter FOR TESTING RAISING zcx_error,
+      file_invalid_win_drive_host FOR TESTING RAISING zcx_error.
+
+ENDCLASS.
+
+CLASS ltcl_whatwg IMPLEMENTATION.
+
+  " *** IDNA ***
+
+  METHOD domain_to_ascii.
+    " TODO: requires punycode
+    " Unicode ToASCII records an error or returns the empty string.
+  ENDMETHOD.
+
+  METHOD domain_invalid_code_point.
+    " TODO: requires punycode
+    " The input’s host contains a forbidden domain code point.
+  ENDMETHOD.
+
+  METHOD domain_to_unicode.
+    " TODO: requires punycode
+    " Unicode ToUnicode records an error.
+  ENDMETHOD.
+
+  " *** Host Parsing ***
+
+  METHOD host_invalid_code_point.
+    " An opaque host (in a URL that is not special) contains a forbidden host code point.
+    TRY.
+        zcl_url=>parse( 'foo://exa[mple.org' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv4_empty_part.
+    " An IPv4 address ends with a U+002E (.).
+    TRY.
+        zcl_url=>parse( 'https://127.0.0.1./' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv4_too_many_parts.
+    " An IPv4 address does not consist of exactly 4 parts.
+    TRY.
+        zcl_url=>parse( 'https://1.2.3.4.5/' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv4_non_numeric_part.
+    " An IPv4 address part is not numeric.
+    TRY.
+        " TODO: Is this really an IP address?
+        " zcl_url=>parse( 'https://test.42' )
+        " cl_abap_unit_assert=>fail( )
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv4_non_decimal_part.
+    " The IPv4 address contains numbers expressed using hexadecimal or octal digits.
+    TRY.
+        zcl_url=>parse( 'https://127.0.0x0.1' ).
+      CATCH cx_root.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv4_out_of_range_part.
+    " An IPv4 address part exceeds 255.
+    TRY.
+        zcl_url=>parse( 'https://255.255.4000.1' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv6_unclosed.
+    " An IPv6 address is missing the closing U+005D (]).
+    TRY.
+        zcl_url=>parse( 'https://[::1' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv6_invalid_compression.
+    " An IPv6 address begins with improper compression.
+    TRY.
+        zcl_url=>parse( 'https://[:1]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv6_too_many_pieces.
+    " An IPv6 address contains more than 8 pieces.
+    TRY.
+        zcl_url=>parse( 'https://[1:2:3:4:5:6:7:8:9]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv6_multiple_compression.
+    " An IPv6 address is compressed in more than one spot.
+    TRY.
+        zcl_url=>parse( 'https://[1::1::1]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv6_invalid_code_point.
+    " An IPv6 address contains a code point that is neither an
+    " ASCII hex digit nor a U+003A (:). Or it unexpectedly ends.
+    TRY.
+        zcl_url=>parse( 'https://[1:2:3!:4]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    TRY.
+        zcl_url=>parse( 'https://[1:2:3:]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv6_too_few_pieces.
+    " An uncompressed IPv6 address contains fewer than 8 pieces.
+    TRY.
+        zcl_url=>parse( 'https://[1:2:3]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv4_in_ipv6_too_many_pieces.
+    " An IPv6 address with IPv4 address syntax: the IPv6 address has more than 6 pieces.
+    TRY.
+        zcl_url=>parse( 'https://[1:1:1:1:1:1:1:127.0.0.1]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv4_in_ipv6_invalid_code_pnt.
+    " An IPv6 address with IPv4 address syntax:
+    " - An IPv4 part is empty or contains a non-ASCII digit.
+    " - An IPv4 part contains a leading 0.
+    " - There are too many IPv4 parts.
+    TRY.
+        zcl_url=>parse( 'https://[ffff::.0.0.1]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    TRY.
+        zcl_url=>parse( 'https://[ffff::.0.0.1]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    TRY.
+        zcl_url=>parse( 'https://[ffff::127.0.xyz.1]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    TRY.
+        zcl_url=>parse( 'https://[ffff::127.0xyz]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    TRY.
+        zcl_url=>parse( 'https://[ffff::127.00.0.1]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    TRY.
+        zcl_url=>parse( 'https://[ffff::127.0.0.1.2]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv4_in_ipv6_out_of_range_prt.
+    " An IPv6 address with IPv4 address syntax: an IPv4 part exceeds 255.
+    TRY.
+        zcl_url=>parse( 'https://[ffff::127.0.0.4000]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD ipv4_in_ipv6_too_few_parts.
+    " An IPv6 address with IPv4 address syntax: an IPv4 address contains too few parts.
+    TRY.
+        zcl_url=>parse( 'https://[ffff::127.0.0]' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  " *** URL Parsing ***
+
+  METHOD invalid_url_unit.
+    " A code point is found that is not a URL unit.
+    TRY.
+        zcl_url=>parse( 'https://example.org/>' ).
+      CATCH cx_root.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
+
+    TRY.
+        zcl_url=>parse( ' https://example.org ' ).
+      CATCH cx_root.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
+
+    TRY.
+        " TODO: Should this really be valid?
+        " zcl_url=>parse( |ht\ntps://example.org| )
+      CATCH cx_root.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
+
+    TRY.
+        zcl_url=>parse( 'https://example.org/%s' ).
+      CATCH cx_root.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD special_scheme_missing.
+    " The input's scheme is not followed by '//'.
+    TRY.
+        zcl_url=>parse( 'file:c:/my-secret-folder' ).
+      CATCH cx_root.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
+
+    TRY.
+        zcl_url=>parse( 'https:example.org' ).
+      CATCH cx_root.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
+
+    TRY.
+        " const url = new url('https:foo.html', 'https://example.org/');
+        zcl_url=>parse( 'https:foo.html' ).
+      CATCH cx_root.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD missing_scheme_non_rel_url.
+    " The input is missing a scheme, because it does not begin with an ASCII alpha,
+    " and either no base URL was provided or the base URL cannot be used as a base
+    " URL because it has an opaque path.
+    TRY.
+        zcl_url=>parse( '💩' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD invalid_reverse_solidus.
+    " The URL has a special scheme and it uses U+005C (\) instead of U+002F (/).
+    TRY.
+        zcl_url=>parse( 'https://example.org\path\to\file' ).
+      CATCH cx_root.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD invalid_credentials.
+    " The input includes credentials.
+    TRY.
+        zcl_url=>parse( 'https://user@example.org' ).
+      CATCH cx_root.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
+
+    TRY.
+        zcl_url=>parse( 'ssh://user@example.org' ).
+      CATCH cx_root.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD host_missing.
+    " The input has a special scheme, but does not contain a host.
+    TRY.
+        zcl_url=>parse( 'https://#fragment' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    TRY.
+        zcl_url=>parse( 'https://:443' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    TRY.
+        zcl_url=>parse( 'https://user:pass@' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD port_out_of_range.
+    " The input's port is too big.
+    TRY.
+        zcl_url=>parse( 'https://example.org:70000' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD port_invalid.
+    " The input's port is invalid.
+    TRY.
+        zcl_url=>parse( 'https://example.org:7z' ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD file_invalid_win_drive_letter.
+    " The input is a relative-URL string that starts with a Windows drive
+    " letter and the base URL's scheme is 'file'.
+    TRY.
+        " const url = new URL('/c:/path/to/file', 'file:///c:/');
+      CATCH cx_root.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD file_invalid_win_drive_host.
+    " A file: URL's host is a Windows drive letter.
+    TRY.
+        zcl_url=>parse( 'file://c:' ).
+      CATCH cx_root.
+        cl_abap_unit_assert=>fail( ).
+    ENDTRY.
+  ENDMETHOD.
 ENDCLASS.

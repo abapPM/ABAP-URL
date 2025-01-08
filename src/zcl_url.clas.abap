@@ -1,5 +1,17 @@
 CLASS zcl_url DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
+************************************************************************
+* URL Object
+*
+* Implementation of WHATWG-URL standard
+* https://url.spec.whatwg.org/
+*
+* Copyright 2024 apm.to Inc. <https://apm.to>
+* SPDX-License-Identifier: MIT
+************************************************************************
+* TODO: Add support for International Domain Names for Application
+* (punycode)
+************************************************************************
   PUBLIC SECTION.
 
     CONSTANTS c_version TYPE string VALUE '1.0.0' ##NEEDED.
@@ -19,30 +31,27 @@ CLASS zcl_url DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
     DATA components TYPE ty_url_components READ-ONLY.
 
-    CLASS-METHODS:
-      parse
-        IMPORTING
-          url           TYPE string
-        RETURNING
-          VALUE(result) TYPE REF TO zcl_url
-        RAISING
-          zcx_error.
+    CLASS-METHODS parse
+      IMPORTING
+        url           TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO zcl_url
+      RAISING
+        zcx_error.
 
-    CLASS-METHODS
-      default_port
-        IMPORTING
-          scheme        TYPE string
-        RETURNING
-          VALUE(result) TYPE string.
+    CLASS-METHODS default_port
+      IMPORTING
+        scheme        TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 
-    CLASS-METHODS
-      serialize
-        IMPORTING
-          components TYPE ty_url_components
-        RETURNING
-          VALUE(url) TYPE string
-        RAISING
-          zcx_error.
+    CLASS-METHODS serialize
+      IMPORTING
+        components TYPE ty_url_components
+      RETURNING
+        VALUE(url) TYPE string
+      RAISING
+        zcx_error.
 
     METHODS constructor
       IMPORTING
@@ -50,53 +59,59 @@ CLASS zcl_url DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
   PRIVATE SECTION.
 
-    CLASS-METHODS:
-      is_special_scheme
-        IMPORTING
-          scheme        TYPE string
-        RETURNING
-          VALUE(result) TYPE abap_bool,
+    CLASS-METHODS is_special_scheme
+      IMPORTING
+        scheme        TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
-      validate_scheme
-        IMPORTING
-          scheme TYPE string
-        RAISING
-          zcx_error,
+    CLASS-METHODS validate_scheme
+      IMPORTING
+        scheme TYPE string
+      RAISING
+        zcx_error.
 
-      parse_authority
-        IMPORTING
-          authority TYPE string
-        EXPORTING
-          username  TYPE string
-          password  TYPE string
-          host      TYPE string
-          port      TYPE string
-        RAISING
-          zcx_error,
+    CLASS-METHODS parse_authority
+      IMPORTING
+        authority TYPE string
+        scheme    TYPE string
+      EXPORTING
+        username  TYPE string
+        password  TYPE string
+        host      TYPE string
+        port      TYPE string
+      RAISING
+        zcx_error.
 
-      normalize_path
-        IMPORTING
-          path          TYPE string
-        RETURNING
-          VALUE(result) TYPE string,
+    CLASS-METHODS normalize_path
+      IMPORTING
+        path          TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 
-      percent_encode
-        IMPORTING
-          raw           TYPE csequence
-        RETURNING
-          VALUE(result) TYPE string,
+    CLASS-METHODS percent_encode
+      IMPORTING
+        raw           TYPE csequence
+      RETURNING
+        VALUE(result) TYPE string.
 
-      percent_decode
-        IMPORTING
-          raw           TYPE csequence
-        RETURNING
-          VALUE(result) TYPE string,
+    CLASS-METHODS percent_decode
+      IMPORTING
+        raw           TYPE csequence
+      RETURNING
+        VALUE(result) TYPE string.
 
-      validate_ipv6_address
-        IMPORTING
-          address TYPE string
-        RAISING
-          zcx_error.
+    CLASS-METHODS validate_ipv6_address
+      IMPORTING
+        address TYPE string
+      RAISING
+        zcx_error.
+
+    CLASS-METHODS validate_ipv4_address
+      IMPORTING
+        address TYPE string
+      RAISING
+        zcx_error.
 
 ENDCLASS.
 
@@ -177,16 +192,18 @@ CLASS zcl_url IMPLEMENTATION.
 
   METHOD parse.
 
-    DATA: components TYPE ty_url_components,
-          remaining  TYPE string,
-          authority  TYPE string,
-          delimiter  TYPE i.
+    DATA components TYPE ty_url_components.
+
+    IF url IS INITIAL.
+      zcx_error=>raise( 'No URL' ).
+    ENDIF.
 
     " Remove leading/trailing spaces
-    remaining = condense( url ).
+    DATA(remaining) = condense( url ).
+    DATA(authority) = ``.
 
     " Parse scheme
-    delimiter = find( val = remaining sub = ':' ).
+    DATA(delimiter) = find( val = remaining sub = ':' ).
     IF delimiter < 0.
       zcx_error=>raise( 'Invalid URL: no scheme found' ).
     ENDIF.
@@ -197,7 +214,7 @@ CLASS zcl_url IMPLEMENTATION.
     components-is_special = is_special_scheme( components-scheme ).
 
     " Remove scheme and ':' from remaining string
-    delimiter += 1.
+    delimiter = delimiter + 1.
     remaining = remaining+delimiter.
 
     " Check if URL has authority (starts with '//')
@@ -214,10 +231,18 @@ CLASS zcl_url IMPLEMENTATION.
         remaining = remaining+delimiter.
       ENDIF.
 
+      " Split off fragment
+      delimiter = find( val = authority sub = '#' ).
+      IF delimiter >= 0.
+        authority = authority(delimiter).
+        remaining = authority+delimiter.
+      ENDIF.
+
       " Parse authority section
       parse_authority(
         EXPORTING
           authority = authority
+          scheme    = components-scheme
         IMPORTING
           username  = components-username
           password  = components-password
@@ -230,49 +255,50 @@ CLASS zcl_url IMPLEMENTATION.
     DATA(fragment_pos) = find( val = remaining sub = '#' ).
 
     " Set path first
-    IF query_pos = 0.
-      " URL starts with ?
-      components-path = ''.
-      remaining = remaining+1.
+    CASE 0.
+      WHEN query_pos.
+        " URL starts with ?
+        components-path = ''.
+        remaining = remaining+1.
 
-      " Find fragment after query
-      fragment_pos = find( val = remaining sub = '#' ).
-      IF fragment_pos >= 0.
-        components-query = remaining(fragment_pos).
-        fragment_pos += 1.
-        components-fragment = remaining+fragment_pos.
-      ELSE.
-        components-query = remaining.
-      ENDIF.
-    ELSEIF fragment_pos = 0.
-      " URL starts with #
-      components-path = ''.
-      fragment_pos += 1.
-      components-fragment = remaining+1.
-    ELSE.
-      " Normal case - extract path
-      IF query_pos > 0 AND ( fragment_pos < 0 OR query_pos < fragment_pos ).
-        " Path ends with ?
-        components-path = remaining(query_pos).
-        query_pos += 1.
-        IF fragment_pos > query_pos.
-          DATA(query_len) = fragment_pos - query_pos.
-          components-query = remaining+query_pos(query_len).
-          fragment_pos += 1.
+        " Find fragment after query
+        fragment_pos = find( val = remaining sub = '#' ).
+        IF fragment_pos >= 0.
+          components-query = remaining(fragment_pos).
+          fragment_pos = fragment_pos + 1.
           components-fragment = remaining+fragment_pos.
         ELSE.
-          components-query = remaining+query_pos.
+          components-query = remaining.
         ENDIF.
-      ELSEIF fragment_pos > 0.
-        " Path ends with #
-        components-path = remaining(fragment_pos).
-        fragment_pos += 1.
-        components-fragment = remaining+fragment_pos.
-      ELSE.
-        " Only path
-        components-path = remaining.
-      ENDIF.
-    ENDIF.
+      WHEN fragment_pos.
+        " URL starts with #
+        components-path = ''.
+        fragment_pos = fragment_pos + 1.
+        components-fragment = remaining+1.
+      WHEN OTHERS.
+        " Normal case - extract path
+        IF query_pos > 0 AND ( fragment_pos < 0 OR query_pos < fragment_pos ).
+          " Path ends with ?
+          components-path = remaining(query_pos).
+          query_pos = query_pos + 1.
+          IF fragment_pos > query_pos.
+            DATA(query_len) = fragment_pos - query_pos.
+            components-query = remaining+query_pos(query_len).
+            fragment_pos = fragment_pos + 1.
+            components-fragment = remaining+fragment_pos.
+          ELSE.
+            components-query = remaining+query_pos.
+          ENDIF.
+        ELSEIF fragment_pos > 0.
+          " Path ends with #
+          components-path = remaining(fragment_pos).
+          fragment_pos = fragment_pos + 1.
+          components-fragment = remaining+fragment_pos.
+        ELSE.
+          " Only path
+          components-path = remaining.
+        ENDIF.
+    ENDCASE.
 
     components-path     = percent_decode( normalize_path( components-path ) ).
     components-query    = percent_decode( components-query ).
@@ -285,24 +311,19 @@ CLASS zcl_url IMPLEMENTATION.
 
   METHOD parse_authority.
 
-    DATA:
-      temp        TYPE string,
-      delimiter   TYPE i,
-      credentials TYPE string.
-
-    temp = authority.
+    DATA(temp) = authority.
 
     " Parse username and password
-    delimiter = find( val = temp sub = '@' ).
+    DATA(delimiter) = find( val = temp sub = '@' ).
     IF delimiter >= 0.
-      credentials = temp(delimiter).
-      delimiter += 1.
+      DATA(credentials) = temp(delimiter).
+      delimiter = delimiter + 1.
       temp = temp+delimiter.
 
       delimiter = find( val = credentials sub = ':' ).
       IF delimiter >= 0.
         username = percent_decode( |{ credentials(delimiter) }| ).
-        delimiter += 1.
+        delimiter = delimiter + 1.
         password = percent_decode( |{ credentials+delimiter }| ).
       ELSE.
         username = percent_decode( credentials ).
@@ -324,9 +345,9 @@ CLASS zcl_url IMPLEMENTATION.
       host = temp+1(host_len).
 
       " Check if there's a port after the IPv6 address
-      delimiter += 1.
-      IF delimiter < strlen( temp ) AND temp+delimiter(1) = ':'.
-        delimiter += 1.
+      delimiter = delimiter + 1.
+      IF strlen( temp ) > delimiter AND temp+delimiter(1) = ':'.
+        delimiter = delimiter + 1.
         port = temp+delimiter.
       ENDIF.
     ELSE.
@@ -334,7 +355,7 @@ CLASS zcl_url IMPLEMENTATION.
       delimiter = find( val = temp sub = ':' ).
       IF delimiter >= 0.
         host = temp(delimiter).
-        delimiter += 1.
+        delimiter = delimiter + 1.
         port = temp+delimiter.
       ELSE.
         host = temp.
@@ -348,11 +369,27 @@ CLASS zcl_url IMPLEMENTATION.
       IF NOT matches( val = port regex = '^\d+$' ).
         zcx_error=>raise( 'Invalid port number' ).
       ENDIF.
+      IF NOT port BETWEEN 0 AND 65535.
+        zcx_error=>raise( 'Port number out of range' ).
+      ENDIF.
     ENDIF.
 
-    " Validate IPv6 address if present
-    IF host IS NOT INITIAL AND temp(1) = '['.
+    " Validate host
+    IF is_special_scheme( scheme ).
+      IF host IS INITIAL.
+        zcx_error=>raise( 'Missing host' ).
+      ENDIF.
+    ELSE.
+      IF host CA | \n\t\r#/:<>?@[\\]^\||.
+        zcx_error=>raise( 'Host contain invalid code point' ).
+      ENDIF.
+    ENDIF.
+
+    " Validate IPv4 or IPv6 address if present
+    IF temp(1) = '['.
       validate_ipv6_address( host ).
+    ELSEIF host CO '0123456789. '.
+      validate_ipv4_address( host ).
     ENDIF.
 
   ENDMETHOD.
@@ -388,7 +425,7 @@ CLASS zcl_url IMPLEMENTATION.
         DATA(idx2) = idx + 1.
         result = |{ result(idx) }+{ result+idx2(*) }|.
       ENDIF.
-      idx += 1.
+      idx = idx + 1.
     ENDDO.
 
   ENDMETHOD.
@@ -455,35 +492,77 @@ CLASS zcl_url IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD validate_ipv6_address.
+  METHOD validate_ipv4_address.
 
-    DATA:
-      parts TYPE TABLE OF string,
-      part  TYPE string,
-      count TYPE i.
+    IF address(1) = '.'.
+      zcx_error=>raise( 'Invalid IPv4 address: initial segment is empty' ).
+    ENDIF.
 
-    " Split by colons
-    SPLIT address AT ':' INTO TABLE parts.
+    DATA(len) = strlen( address ) - 1.
+    IF len >= 0 AND address+len(1) = '.'.
+      zcx_error=>raise( 'Invalid IPv4 address: last segment is empty' ).
+    ENDIF.
 
-    " Basic validation of IPv6 format
-    IF lines( parts ) > 8.
-      zcx_error=>raise( 'Invalid IPv6 address: too many segments' ).
+    " Split by period
+    SPLIT address AT '.' INTO TABLE DATA(parts).
+
+    " Basic validation of IPv4 format
+    IF lines( parts ) <> 4.
+      zcx_error=>raise( 'Invalid IPv4 address: not four segments' ).
     ENDIF.
 
     " Check each part
-    LOOP AT parts INTO part.
+    LOOP AT parts INTO DATA(part).
+      IF NOT matches( val = part regex = '^\d+$' ).
+        zcx_error=>raise( 'Invalid IPv4 address: non-numeric segment' ).
+      ENDIF.
+      IF NOT part BETWEEN 0 AND 255.
+        zcx_error=>raise( 'Invalid IPv4 address: segment exceeds 255' ).
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD validate_ipv6_address.
+
+    IF address(1) = ':'.
+      zcx_error=>raise( 'Invalid IPv6 address: initial piece is empty' ).
+    ENDIF.
+
+    DATA(len) = strlen( address ) - 1.
+    IF len >= 0 AND address+len(1) = ':'.
+      zcx_error=>raise( 'Invalid IPv6 address: last piece is empty' ).
+    ENDIF.
+
+    " Split by colons
+    SPLIT address AT ':' INTO TABLE DATA(parts).
+
+    " Basic validation of IPv6 format
+    IF lines( parts ) > 8.
+      zcx_error=>raise( 'Invalid IPv6 address: too many pieces' ).
+    ENDIF.
+
+    " Uncompressed addresses must have 8 parts
+    IF address NS '::' AND lines( parts ) <> 8.
+      zcx_error=>raise( 'Invalid IPv6 address: too few pieces' ).
+    ENDIF.
+
+    " Check each part
+    DATA(count) = 0.
+    LOOP AT parts INTO DATA(part).
       " Empty part is allowed for :: notation, but only once
       IF part IS INITIAL.
-        ADD 1 TO count.
+        count = count + 1.
         IF count > 1.
-          zcx_error=>raise( 'Invalid IPv6 address: multiple empty segments' ).
+          zcx_error=>raise( 'Invalid IPv6 address: multiple empty pieces' ).
         ENDIF.
         CONTINUE.
       ENDIF.
 
       " Validate hexadecimal format and length
       IF NOT matches( val = part regex = '^[0-9A-Fa-f]{1,4}$' ).
-        zcx_error=>raise( 'Invalid IPv6 address: invalid hexadecimal segment' ).
+        zcx_error=>raise( 'Invalid IPv6 address: invalid hexadecimal piece' ).
       ENDIF.
     ENDLOOP.
 
