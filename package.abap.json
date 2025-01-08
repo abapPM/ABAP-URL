@@ -1,0 +1,40 @@
+{
+  "name": "url",
+  "version": "1.0.0",
+  "description": "URL Object",
+  "keywords": [
+    "abap",
+    "apm",
+    "url",
+    "sap"
+  ],
+  "homepage": "https://abappm.com",
+  "bugs": {
+    "url": "https://github.com/abapPM/ABAP-URL/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Marc Bernard",
+    "url": "https://github.com/mbtools",
+    "email": "marc@abappm.com"
+  },
+  "maintainers": [
+    {
+      "name": "Marc Bernard",
+      "url": "https://github.com/mbtools",
+      "email": "marc@abappm.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abapPM/ABAP-URL.git"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/abappm"
+  },
+  "engines": {
+    "abap": ">=7.50",
+    "apm": ">=1"
+  }
+}
