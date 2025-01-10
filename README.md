@@ -8,8 +8,6 @@
 
 Full implementation of WHATWG [URL Standard](https://url.spec.whatwg.org/).
 
-Limitations: No support for punycode.
-
 NO WARRANTIES, [MIT License](https://github.com/abapPM/ABAP-URL/blob/main/LICENSE)
 
 ```
@@ -58,6 +56,10 @@ DATA(url_string) = zcl_url=>serialize( components ).
 
 SAP Basis 7.50 or higher
 
+## Limitations
+
+There's no support for punycode (should be a separate package).
+
 ## Installation
 
 Install `url` as a global module in your system using [apm](https://abappm.com).
@@ -76,7 +78,7 @@ IMPORT '*' TO '/namespace/$1$2' FROM 'url'.
 
 All contributions are welcome! Read our [Contribution Guidelines](https://github.com/abapPM/ABAP-URL/blob/main/CONTRIBUTING.md), fork this repo, and create a pull request.
 
-You can install the developer version of ABAP Error using [abapGit](https://github.com/abapGit/abapGit) either by creating a new online repository for https://github.com/abapPM/ABAP-URL.
+You can install the developer version of ABAP URL using [abapGit](https://github.com/abapGit/abapGit) either by creating a new online repository for https://github.com/abapPM/ABAP-URL.
 
 Recommended SAP package: `$URL`
 
