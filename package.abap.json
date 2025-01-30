@@ -16,19 +16,17 @@
   "license": "MIT",
   "author": {
     "name": "Marc Bernard",
-    "url": "https://github.com/mbtools",
-    "email": "marc@abappm.com"
+    "url": "https://github.com/mbtools"
   },
   "maintainers": [
     {
       "name": "Marc Bernard",
-      "url": "https://github.com/mbtools",
-      "email": "marc@abappm.com"
+      "url": "https://github.com/mbtools"
     }
   ],
   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/abapPM/ABAP-URL.git"
+    "type": "https",
+    "url": "https://github.com/abapPM/ABAP-URL"
   },
   "funding": {
     "type": "github",
