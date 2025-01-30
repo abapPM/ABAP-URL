@@ -11,12 +11,12 @@ Full implementation of WHATWG [URL Standard](https://url.spec.whatwg.org/).
 NO WARRANTIES, [MIT License](https://github.com/abapPM/ABAP-URL/blob/main/LICENSE)
 
 ```
-┌───────────────────────────────────────────────────────────────────────────────────────────────────┐
-"  https:   //    user   :   pass   @ sub.example.com : 8080   /p/a/t/h  ?  query=string     #hash  "
-│  scheme  │  │ username │ password │    host         │ port │   path   │ |    query     │ fragment │
-├──────────┴──┴──────────┴──────────┴─────────────────┴──────┴──────────┴─┴──────────────┴──────────┤
-│                                              url                                                  │
-└───────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌────────┬──┬──────────┬──────────┬─────────────────┬──────┬──────────┬─┬──────────────┬──────────┐
+" https:  //    user   :   pass   @ sub.example.com : 8080   /p/a/t/h  ?  query=string     #hash  "
+│ scheme │  │ username │ password │    host         │ port │   path   │ |    query     │ fragment │
+├────────┴──┴──────────┴──────────┴─────────────────┴──────┴──────────┴─┴──────────────┴──────────┤
+│                                            url                                                  │
+└─────────────────────────────────────────────────────────────────────────────────────────────────┘
 (All spaces in the "" line should be ignored. They are purely for formatting.)
 ```
 
