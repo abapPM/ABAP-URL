@@ -1,7 +1,7 @@
 {
   "name": "url",
   "version": "1.0.0",
-  "description": "URL Object",
+  "description": "URL Object for ABAP",
   "type": "module",  
   "keywords": [
     "abap",
