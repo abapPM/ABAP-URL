@@ -970,6 +970,7 @@ CLASS ltcl_whatwg IMPLEMENTATION.
     " The input is a relative-URL string that starts with a Windows drive
     " letter and the base URL's scheme is 'file'.
     TRY.
+        " TODO
         " const url = new URL('/c:/path/to/file', 'file:///c:/');
       CATCH cx_root.
         cl_abap_unit_assert=>fail( ).
