@@ -1,4 +1,4 @@
-CLASS zcl_url_params DEFINITION PUBLIC FINAL CREATE PUBLIC.
+CLASS /apmg/cl_url_params DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
 ************************************************************************
 * URL Query Parameters
@@ -26,13 +26,13 @@ CLASS zcl_url_params DEFINITION PUBLIC FINAL CREATE PUBLIC.
       IMPORTING
         !query        TYPE string
       RETURNING
-        VALUE(result) TYPE REF TO zcl_url_params.
+        VALUE(result) TYPE REF TO /apmg/cl_url_params.
 
     CLASS-METHODS create
       IMPORTING
         !params       TYPE ty_params
       RETURNING
-        VALUE(result) TYPE REF TO zcl_url_params.
+        VALUE(result) TYPE REF TO /apmg/cl_url_params.
 
     METHODS constructor
       IMPORTING
@@ -80,7 +80,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_url_params IMPLEMENTATION.
+CLASS /apmg/cl_url_params IMPLEMENTATION.
 
 
   METHOD append.

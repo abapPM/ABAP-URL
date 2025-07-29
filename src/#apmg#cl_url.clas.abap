@@ -1,4 +1,4 @@
-CLASS zcl_url DEFINITION PUBLIC FINAL CREATE PUBLIC.
+CLASS /apmg/cl_url DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
 ************************************************************************
 * URL Object
@@ -36,9 +36,9 @@ CLASS zcl_url DEFINITION PUBLIC FINAL CREATE PUBLIC.
       IMPORTING
         url           TYPE string
       RETURNING
-        VALUE(result) TYPE REF TO zcl_url
+        VALUE(result) TYPE REF TO /apmg/cl_url
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     CLASS-METHODS default_port
       IMPORTING
@@ -52,12 +52,13 @@ CLASS zcl_url DEFINITION PUBLIC FINAL CREATE PUBLIC.
       RETURNING
         VALUE(result) TYPE string
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     METHODS constructor
       IMPORTING
         components TYPE ty_url_components.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
 
     CLASS-METHODS is_special_scheme
@@ -70,7 +71,7 @@ CLASS zcl_url DEFINITION PUBLIC FINAL CREATE PUBLIC.
       IMPORTING
         scheme TYPE string
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     CLASS-METHODS parse_authority
       IMPORTING
@@ -82,7 +83,7 @@ CLASS zcl_url DEFINITION PUBLIC FINAL CREATE PUBLIC.
         host      TYPE string
         port      TYPE string
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     CLASS-METHODS normalize_path
       IMPORTING
@@ -106,19 +107,19 @@ CLASS zcl_url DEFINITION PUBLIC FINAL CREATE PUBLIC.
       IMPORTING
         address TYPE string
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
     CLASS-METHODS validate_ipv4_address
       IMPORTING
         address TYPE string
       RAISING
-        zcx_error.
+        /apmg/cx_error.
 
 ENDCLASS.
 
 
 
-CLASS zcl_url IMPLEMENTATION.
+CLASS /apmg/cl_url IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -196,7 +197,7 @@ CLASS zcl_url IMPLEMENTATION.
     DATA components TYPE ty_url_components.
 
     IF url IS INITIAL.
-      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'No URL'.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'No URL'.
     ENDIF.
 
     " Remove leading/trailing spaces
@@ -206,7 +207,7 @@ CLASS zcl_url IMPLEMENTATION.
     " Parse scheme
     DATA(delimiter) = find( val = remaining sub = ':' ).
     IF delimiter < 0.
-      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid URL: no scheme found'.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid URL: no scheme found'.
     ENDIF.
 
     components-scheme = to_lower( remaining(delimiter) ).
@@ -305,7 +306,7 @@ CLASS zcl_url IMPLEMENTATION.
     components-query    = percent_decode( components-query ).
     components-fragment = percent_decode( components-fragment ).
 
-    result = NEW zcl_url( components ).
+    result = NEW /apmg/cl_url( components ).
 
   ENDMETHOD.
 
@@ -338,7 +339,7 @@ CLASS zcl_url IMPLEMENTATION.
       " Find the closing bracket
       delimiter = find( val = temp sub = ']' ).
       IF delimiter < 0.
-        RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid IPv6 address: missing closing bracket'.
+        RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid IPv6 address: missing closing bracket'.
       ENDIF.
 
       " Extract IPv6 address without brackets
@@ -368,21 +369,21 @@ CLASS zcl_url IMPLEMENTATION.
     " Validate port if present
     IF port IS NOT INITIAL.
       IF NOT matches( val = port regex = '^\d+$' ).
-        RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid port number'.
+        RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid port number'.
       ENDIF.
       IF port NOT BETWEEN 0 AND 65535.
-        RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Port number out of range'.
+        RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Port number out of range'.
       ENDIF.
     ENDIF.
 
     " Validate host
     IF is_special_scheme( scheme ).
       IF host IS INITIAL.
-        RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Missing host'.
+        RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Missing host'.
       ENDIF.
     ELSE.
       IF host CA | \n\t\r#/:<>?@[\\]^\||.
-        RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Host contain invalid code point'.
+        RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Host contain invalid code point'.
       ENDIF.
     ENDIF.
 
@@ -498,12 +499,12 @@ CLASS zcl_url IMPLEMENTATION.
   METHOD validate_ipv4_address.
 
     IF address IS NOT INITIAL AND address(1) = '.'.
-      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid IPv4 address: initial segment is empty'.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid IPv4 address: initial segment is empty'.
     ENDIF.
 
     DATA(len) = strlen( address ) - 1.
     IF len >= 0 AND address+len(1) = '.'.
-      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid IPv4 address: last segment is empty'.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid IPv4 address: last segment is empty'.
     ENDIF.
 
     " Split by period
@@ -511,16 +512,16 @@ CLASS zcl_url IMPLEMENTATION.
 
     " Basic validation of IPv4 format
     IF lines( parts ) <> 4.
-      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid IPv4 address: not four segments'.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid IPv4 address: not four segments'.
     ENDIF.
 
     " Check each part
     LOOP AT parts INTO DATA(part).
       IF NOT matches( val = part regex = '^\d+$' ).
-        RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid IPv4 address: non-numeric segment'.
+        RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid IPv4 address: non-numeric segment'.
       ENDIF.
       IF part NOT BETWEEN 0 AND 255.
-        RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid IPv4 address: segment exceeds 255'.
+        RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid IPv4 address: segment exceeds 255'.
       ENDIF.
     ENDLOOP.
 
@@ -530,12 +531,12 @@ CLASS zcl_url IMPLEMENTATION.
   METHOD validate_ipv6_address.
 
     IF address(1) = ':'.
-      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid IPv6 address: initial piece is empty'.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid IPv6 address: initial piece is empty'.
     ENDIF.
 
     DATA(len) = strlen( address ) - 1.
     IF len >= 0 AND address+len(1) = ':'.
-      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid IPv6 address: last piece is empty'.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid IPv6 address: last piece is empty'.
     ENDIF.
 
     " Split by colons
@@ -543,12 +544,12 @@ CLASS zcl_url IMPLEMENTATION.
 
     " Basic validation of IPv6 format
     IF lines( parts ) > 8.
-      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid IPv6 address: too many pieces'.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid IPv6 address: too many pieces'.
     ENDIF.
 
     " Uncompressed addresses must have 8 parts
     IF address NS '::' AND lines( parts ) <> 8.
-      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid IPv6 address: too few pieces'.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid IPv6 address: too few pieces'.
     ENDIF.
 
     " Check each part
@@ -558,14 +559,14 @@ CLASS zcl_url IMPLEMENTATION.
       IF part IS INITIAL.
         count = count + 1.
         IF count > 1.
-          RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid IPv6 address: multiple empty pieces'.
+          RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid IPv6 address: multiple empty pieces'.
         ENDIF.
         CONTINUE.
       ENDIF.
 
       " Validate hexadecimal format and length
       IF NOT matches( val = part regex = '^[0-9A-Fa-f]{1,4}$' ).
-        RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid IPv6 address: invalid hexadecimal piece'.
+        RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid IPv6 address: invalid hexadecimal piece'.
       ENDIF.
     ENDLOOP.
 
@@ -575,7 +576,7 @@ CLASS zcl_url IMPLEMENTATION.
   METHOD validate_scheme.
 
     IF NOT matches( val = scheme regex = '^[A-Za-z][-A-Za-z0-9+.]*' ).
-      RAISE EXCEPTION TYPE zcx_error_text EXPORTING text = 'Invalid scheme'.
+      RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid scheme'.
     ENDIF.
 
   ENDMETHOD.
