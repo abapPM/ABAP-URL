@@ -22,10 +22,10 @@ NO WARRANTIES, [MIT License](https://github.com/abapPM/ABAP-URL/blob/main/LICENS
 
 ## Usage
 
-Parse a URL into it's component:
+Parse a URL into its components:
 
 ```abap
-DATA(url) = zcl_url=>parse( 'https://example.com/path?query#fragment' ).
+DATA(url) = /apmg/cl_url=>parse( 'https://example.com/path?query#fragment' ).
 
 " url->components-scheme   = 'https'
 " url->components-host     = 'example.com'
@@ -37,7 +37,7 @@ DATA(url) = zcl_url=>parse( 'https://example.com/path?query#fragment' ).
 Serialize a URL from components:
 
 ```abap
-DATA(components) = VALUE zcl_url=>ty_url_components(
+DATA(components) = VALUE /apmg/cl_url=>ty_url_components(
   scheme   = 'https'
   username = 'user'
   password = 'pass'
@@ -47,7 +47,7 @@ DATA(components) = VALUE zcl_url=>ty_url_components(
   query    = 'key=value'
   fragment = 'section' ).
 
-DATA(url_string) = zcl_url=>serialize( components ).
+DATA(url_string) = /apmg/cl_url=>serialize( components ).
 
 " url_string = 'https://user:pass@example.com:8080/path/to/resource?key=value#section'
 ```
@@ -58,7 +58,7 @@ SAP Basis 7.50 or higher
 
 ## Limitations
 
-There's no support for punycode (should be a separate package).
+There's no support for Punycode (should be a separate package).
 
 ## Installation
 
@@ -74,7 +74,7 @@ All contributions are welcome! Read our [Contribution Guidelines](https://github
 
 You can install the developer version of ABAP URL using [abapGit](https://github.com/abapGit/abapGit) by creating a new online repository for `https://github.com/abapPM/ABAP-URL`.
 
-Recommended SAP package: `$URL`
+Recommended SAP package: `/APMG/URL`
 
 ## About
 
