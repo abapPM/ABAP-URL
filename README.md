@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/endpoint?url=https://shield.abappm.com/github/abapPM/ABAP-URL/src/zcl_url.clas.abap/c_version&label=Version&color=blue)
+![Version](https://img.shields.io/endpoint?url=https://shield.abappm.com/github/abapPM/ABAP-URL/src/%2523apmg%2523cl_url.clas.abap/c_version&label=Version&color=blue)
 
 [![License](https://img.shields.io/github/license/abapPM/ABAP-URL?label=License&color=success)](https://github.com/abapPM/ABAP-URL/blob/main/LICENSE)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg?color=success)](https://github.com/abapPM/.github/blob/main/CODE_OF_CONDUCT.md)
@@ -6,7 +6,7 @@
 
 # URL Object
 
-Full implementation of WHATWG [URL Standard](https://url.spec.whatwg.org/).
+Full implementation of the WHATWG [URL Standard](https://url.spec.whatwg.org/).
 
 NO WARRANTIES, [MIT License](https://github.com/abapPM/ABAP-URL/blob/main/LICENSE)
 
@@ -82,4 +82,4 @@ Made with ❤ in Canada
 
 Copyright 2025 apm.to Inc. <https://apm.to>
 
-Follow [@marcf.be](https://bsky.app/profile/marcf.be) on Blueksy and [@marcfbe](https://linkedin.com/in/marcfbe) or LinkedIn
+Follow [@marcf.be](https://bsky.app/profile/marcf.be) on Bluesky and [@marcfbe](https://linkedin.com/in/marcfbe) or LinkedIn
