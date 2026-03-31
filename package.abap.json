@@ -1,13 +1,13 @@
 {
   "name": "url",
-  "version": "1.0.0",
-  "description": "URL Object for ABAP",
-  "type": "module",  
+  "version": "1.0.1",
+  "description": "URL Object",
+  "type": "module",
   "keywords": [
     "abap",
     "apm",
-    "url",
-    "sap"
+    "sap",
+    "url"
   ],
   "homepage": "https://abappm.com",
   "bugs": {
