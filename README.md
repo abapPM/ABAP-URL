@@ -6,7 +6,7 @@
 
 # URL Object
 
-Full implementation of the WHATWG [URL Standard](https://url.spec.whatwg.org/).
+URL parsing and serialization based on the WHATWG [URL Standard](https://url.spec.whatwg.org/).
 
 NO WARRANTIES, [MIT License](https://github.com/abapPM/ABAP-URL/blob/main/LICENSE)
 
@@ -52,13 +52,35 @@ DATA(url_string) = /apmg/cl_url=>serialize( components ).
 " url_string = 'https://user:pass@example.com:8080/path/to/resource?key=value#section'
 ```
 
+### International domain names
+
+Unicode hostnames in `http`, `https`, `ftp`, `ws`, `wss`, and `file` URLs are
+converted to ASCII labels using [Punycode (RFC 3492)](https://www.rfc-editor.org/rfc/rfc3492).
+Both parsing and serialization support this conversion:
+
+```abap
+DATA(url) = /apmg/cl_url=>parse( 'https://bücher.de/path' ).
+" url->components-host = 'xn--bcher-kva.de'
+
+DATA(url_string) = /apmg/cl_url=>serialize( url->components ).
+" url_string = 'https://xn--bcher-kva.de/path'
+```
+
+Hostnames are lowercased, Unicode dot separators are mapped to `.`, and
+percent-encoded UTF-8 hostnames are decoded when parsing. Existing ASCII
+`xn--` labels remain in ASCII form. IPv4/IPv6 processing and hosts for
+non-special schemes retain their existing behavior.
+
 ## Prerequisites
 
 SAP Basis 7.50 or higher
 
 ## Limitations
 
-There's no support for Punycode (should be a separate package).
+Punycode support is not a complete IDNA/UTS #46 implementation. Unicode NFC
+normalization, full compatibility mapping, contextual/bidirectional checks,
+validation of existing `xn--` labels, and DNS length checks are not performed.
+Supply normalized Unicode hostnames when canonical equivalence matters.
 
 ## Installation
 
