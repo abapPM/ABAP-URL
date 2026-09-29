@@ -47,8 +47,14 @@ CLASS ltcl_url DEFINITION FINAL FOR TESTING
       percent_decoding FOR TESTING RAISING /apmg/cx_error,
       invalid_percent_encoding FOR TESTING RAISING /apmg/cx_error,
       " IDNA Processing
-      idna_domains FOR TESTING RAISING /apmg/cx_error,  " TODO
+      idna_domains FOR TESTING RAISING /apmg/cx_error,
       punycode FOR TESTING RAISING /apmg/cx_error,
+      punycode_encoded_host FOR TESTING RAISING /apmg/cx_error,
+      punycode_serialization FOR TESTING RAISING /apmg/cx_error,
+      punycode_opaque_host FOR TESTING RAISING /apmg/cx_error,
+      punycode_invalid_host FOR TESTING RAISING /apmg/cx_error,
+      punycode_invalid_unicode FOR TESTING RAISING /apmg/cx_error,
+      punycode_overflow FOR TESTING RAISING /apmg/cx_error,
       " Serialization
       url_serialization FOR TESTING RAISING /apmg/cx_error,
       special_url_serialization FOR TESTING RAISING /apmg/cx_error.
@@ -463,14 +469,118 @@ CLASS ltcl_url IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD idna_domains.
-    " TODO: requires /apmg/cl_punycode
-    ASSERT 0 = 0.
-*    DATA(components) = /apmg/cl_url=>parse( 'https://müller.de/path' )->components
-*
-*    " Note: In a real implementation, this should be converted to Punycode
-*    cl_abap_unit_assert=>assert_equals(
-*      act = components-host
-*      exp = 'xn--mller-kva.de' )
+    TYPES:
+      BEGIN OF ty_case,
+        input TYPE string,
+        host  TYPE string,
+      END OF ty_case,
+      ty_cases TYPE STANDARD TABLE OF ty_case WITH EMPTY KEY.
+    DATA(cases) = VALUE ty_cases(
+      ( input = 'müller.de' host = 'xn--mller-kva.de' )
+      ( input = 'BÜCHER.Example' host = 'xn--bcher-kva.example' )
+      ( input = 'mañana.com' host = 'xn--maana-pta.com' )
+      ( input = '例え.テスト' host = 'xn--r8jz45g.xn--zckzah' )
+      ( input = 'россия.рф' host = 'xn--h1alffa9f.xn--p1ai' )
+      ( input = 'faß.de' host = 'xn--fa-hia.de' )
+      ( input = 'üüü.de' host = 'xn--tdaaa.de' )
+      ( input = '😀.example' host = 'xn--e28h.example' )
+      ( input = 'bücher' host = 'xn--bcher-kva' )
+      ( input = 'bücher..de.' host = 'xn--bcher-kva..de.' )
+      ( input = 'www。bücher．de｡' host = 'www.xn--bcher-kva.de.' )
+      ( input = 'xn--bcher-kva.例え' host = 'xn--bcher-kva.xn--r8jz45g' ) ).
+
+    LOOP AT cases INTO DATA(test_case).
+      DATA(components) = /apmg/cl_url=>parse( |https://{ test_case-input }/path| )->components.
+      cl_abap_unit_assert=>assert_equals(
+        act = components-host
+        exp = test_case-host
+        msg = test_case-input ).
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD punycode_encoded_host.
+    DATA(components) = /apmg/cl_url=>parse( 'https://user:pass@b%C3%BCcher.de:8080?q=1#part' )->components.
+    cl_abap_unit_assert=>assert_equals( act = components-host exp = 'xn--bcher-kva.de' ).
+    cl_abap_unit_assert=>assert_equals( act = components-port exp = '8080' ).
+    cl_abap_unit_assert=>assert_equals( act = components-username exp = 'user' ).
+    cl_abap_unit_assert=>assert_equals( act = components-password exp = 'pass' ).
+    cl_abap_unit_assert=>assert_equals( act = components-query exp = 'q=1' ).
+    cl_abap_unit_assert=>assert_equals( act = components-fragment exp = 'part' ).
+
+    components = /apmg/cl_url=>parse( 'https://bücher.de#part' )->components.
+    cl_abap_unit_assert=>assert_equals( act = components-host exp = 'xn--bcher-kva.de' ).
+    cl_abap_unit_assert=>assert_equals( act = components-fragment exp = 'part' ).
+
+    components = /apmg/cl_url=>parse( 'https://b%C3%BCcher+shop.de/' )->components.
+    cl_abap_unit_assert=>assert_equals( act = components-host exp = 'xn--bcher+shop-9db.de' ).
+
+    components = /apmg/cl_url=>parse( 'https://bücher.de\path\to\file' )->components.
+    cl_abap_unit_assert=>assert_equals( act = components-host exp = 'xn--bcher-kva.de' ).
+    cl_abap_unit_assert=>assert_equals( act = components-path exp = '/path/to/file' ).
+  ENDMETHOD.
+
+  METHOD punycode_serialization.
+    DATA(schemes) = VALUE string_table( ( `http` ) ( `https` ) ( `ftp` ) ( `ws` ) ( `wss` ) ( `file` ) ).
+    LOOP AT schemes INTO DATA(scheme).
+      DATA(components) = VALUE /apmg/cl_url=>ty_url_components(
+        scheme = scheme
+        host   = 'bücher.de'
+        path   = '/path' ).
+      DATA(url) = /apmg/cl_url=>serialize( components ).
+      cl_abap_unit_assert=>assert_equals( act = url exp = |{ scheme }://xn--bcher-kva.de/path| ).
+      components = /apmg/cl_url=>parse( url )->components.
+      cl_abap_unit_assert=>assert_equals( act = /apmg/cl_url=>serialize( components ) exp = url ).
+      components = /apmg/cl_url=>parse( |{ scheme }://bücher.de/path| )->components.
+      cl_abap_unit_assert=>assert_equals( act = components-host exp = 'xn--bcher-kva.de' ).
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD punycode_opaque_host.
+    DATA(components) = /apmg/cl_url=>parse( 'git://bücher.de/path' )->components.
+    cl_abap_unit_assert=>assert_equals( act = components-host exp = 'bücher.de' ).
+    cl_abap_unit_assert=>assert_equals(
+      act = /apmg/cl_url=>serialize( components )
+      exp = 'git://bücher.de/path' ).
+  ENDMETHOD.
+
+  METHOD punycode_invalid_host.
+    DATA(hosts) = VALUE string_table(
+      ( `b%C3%BCcher%20.de` ) ( `bücher%2F.de` ) ( `bücher%23.de` ) ( `bücher%25.de` )
+      ( `bücher%00.de` ) ( `bücher%7F.de` ) ( `bücher%09.de` ) ).
+    LOOP AT hosts INTO DATA(host).
+      TRY.
+          /apmg/cl_url=>parse( |https://{ host }/| ).
+          cl_abap_unit_assert=>fail( |Should reject invalid host: { host }| ).
+        CATCH /apmg/cx_error.
+          " Expected
+      ENDTRY.
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD punycode_overflow.
+    " A high scalar after many ASCII characters exceeds signed 32-bit delta.
+    DATA(host) = repeat( val = `a` occ = 18000 ) && '😀.example'.
+    TRY.
+        /apmg/cl_url=>parse( |https://{ host }/| ).
+        cl_abap_unit_assert=>fail( 'Should reject Punycode integer overflow' ).
+      CATCH /apmg/cx_error.
+        " Expected
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD punycode_invalid_unicode.
+    DATA(pair) = `😀`.
+    DATA(high) = pair(1).
+    DATA(low) = pair+1(1).
+    DATA(hosts) = VALUE string_table( ( |{ high }| ) ( |{ low }| ) ( |{ high }a| ) ).
+    LOOP AT hosts INTO DATA(host).
+      TRY.
+          /apmg/cl_url=>parse( |https://{ host }/| ).
+          cl_abap_unit_assert=>fail( 'Should reject an unpaired UTF-16 surrogate' ).
+        CATCH /apmg/cx_error.
+          " Expected
+      ENDTRY.
+    ENDLOOP.
   ENDMETHOD.
 
   METHOD punycode.
@@ -636,19 +746,23 @@ CLASS ltcl_whatwg IMPLEMENTATION.
   " *** IDNA ***
 
   METHOD domain_to_ascii.
-    " TODO: requires punycode
+    " TODO: requires full IDNA validation
     " Unicode ToASCII records an error or returns the empty string.
     ASSERT 0 = 0.
   ENDMETHOD.
 
   METHOD domain_invalid_code_point.
-    " TODO: requires punycode
     " The input’s host contains a forbidden domain code point.
-    ASSERT 0 = 0.
+    TRY.
+        /apmg/cl_url=>parse( 'https://bücher%3E.de/' ).
+        cl_abap_unit_assert=>fail( 'Should reject a percent-encoded forbidden domain code point' ).
+      CATCH /apmg/cx_error.
+        " Expected
+    ENDTRY.
   ENDMETHOD.
 
   METHOD domain_to_unicode.
-    " TODO: requires punycode
+    " TODO: requires IDNA ToUnicode validation
     " Unicode ToUnicode records an error.
     ASSERT 0 = 0.
   ENDMETHOD.
