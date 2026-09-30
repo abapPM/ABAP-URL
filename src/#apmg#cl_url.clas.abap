@@ -191,6 +191,14 @@ CLASS /apmg/cl_url IMPLEMENTATION.
 
     " Punycode encoding, not full UTS #46 normalization or IDNA validation.
     DATA(domain_name) = to_lower( domain ).
+
+*    DATA(dot1) = cl_abap_conv_in_ce=>uccpi( 12290 ).
+*    DATA(dot2) = cl_abap_conv_in_ce=>uccpi( 65294 ).
+*    DATA(dot3) = cl_abap_conv_in_ce=>uccpi( 65377 ).
+*
+*    REPLACE ALL OCCURRENCES OF dot1 IN domain_name WITH '.'.
+*    REPLACE ALL OCCURRENCES OF dot2 IN domain_name WITH '.'.
+*    REPLACE ALL OCCURRENCES OF dot3 IN domain_name WITH '.'.
     REPLACE ALL OCCURRENCES OF '。' IN domain_name WITH '.'.
     REPLACE ALL OCCURRENCES OF '．' IN domain_name WITH '.'.
     REPLACE ALL OCCURRENCES OF '｡' IN domain_name WITH '.'.
