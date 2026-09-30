@@ -680,8 +680,9 @@ CLASS /apmg/cl_url IMPLEMENTATION.
   METHOD unescape_host.
 
     CONSTANTS hex_digits TYPE string VALUE '0123456789ABCDEF'.
+
+    TYPES ty_x TYPE x LENGTH 1.
     DATA bytes TYPE xstring.
-    data octet TYPE x LENGTH 1.
 
     IF raw NS '%'.
       result = raw.
@@ -708,7 +709,7 @@ CLASS /apmg/cl_url IMPLEMENTATION.
         IF pair CN hex_digits.
           RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid percent escape in host'.
         ENDIF.
-        octet = pair(2).
+        DATA(octet) = CONV ty_x( pair(2) ).
         CONCATENATE bytes octet INTO bytes IN BYTE MODE.
         offset = offset + 3.
       ENDWHILE.
