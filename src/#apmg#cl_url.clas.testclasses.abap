@@ -476,17 +476,17 @@ CLASS ltcl_url IMPLEMENTATION.
       END OF ty_case,
       ty_cases TYPE STANDARD TABLE OF ty_case WITH EMPTY KEY.
     DATA(cases) = VALUE ty_cases(
-      ( input = 'müller.de' host = 'xn--mller-kva.de' )
-      ( input = 'BÜCHER.Example' host = 'xn--bcher-kva.example' )
-      ( input = 'mañana.com' host = 'xn--maana-pta.com' )
-      ( input = '例え.テスト' host = 'xn--r8jz45g.xn--zckzah' )
-      ( input = 'россия.рф' host = 'xn--h1alffa9f.xn--p1ai' )
-      ( input = 'faß.de' host = 'xn--fa-hia.de' )
-      ( input = 'üüü.de' host = 'xn--tdaaa.de' )
-      ( input = '😀.example' host = 'xn--e28h.example' )
-      ( input = 'bücher' host = 'xn--bcher-kva' )
-      ( input = 'bücher..de.' host = 'xn--bcher-kva..de.' )
-      ( input = 'www。bücher．de｡' host = 'www.xn--bcher-kva.de.' )
+      ( input = 'müller.de'        host = 'xn--mller-kva.de' )
+      ( input = 'BÜCHER.Example'   host = 'xn--bcher-kva.example' )
+      ( input = 'mañana.com'       host = 'xn--maana-pta.com' )
+      ( input = '例え.テスト'           host = 'xn--r8jz45g.xn--zckzah' )
+      ( input = 'россия.рф'        host = 'xn--h1alffa9f.xn--p1ai' )
+      ( input = 'faß.de'           host = 'xn--fa-hia.de' )
+      ( input = 'üüü.de'           host = 'xn--tdaaa.de' )
+      ( input = '😀.example'       host = 'xn--e28h.example' )
+      ( input = 'bücher'           host = 'xn--bcher-kva' )
+      ( input = 'bücher..de.'      host = 'xn--bcher-kva..de.' )
+      ( input = 'www。bücher．de｡'   host = 'www.xn--bcher-kva.de.' )
       ( input = 'xn--bcher-kva.例え' host = 'xn--bcher-kva.xn--r8jz45g' ) ).
 
     LOOP AT cases INTO DATA(test_case).
@@ -546,7 +546,7 @@ CLASS ltcl_url IMPLEMENTATION.
   METHOD punycode_invalid_host.
     DATA(hosts) = VALUE string_table(
       ( `b%C3%BCcher%20.de` ) ( `bücher%2F.de` ) ( `bücher%23.de` ) ( `bücher%25.de` )
-      ( `bücher%00.de` ) ( `bücher%7F.de` ) ( `bücher%09.de` ) ).
+      ( `bücher%00.de` )      ( `bücher%7F.de` ) ( `bücher%09.de` ) ).
     LOOP AT hosts INTO DATA(host).
       TRY.
           /apmg/cl_url=>parse( |https://{ host }/| ).
