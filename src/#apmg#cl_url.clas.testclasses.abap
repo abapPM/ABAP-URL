@@ -499,6 +499,15 @@ CLASS ltcl_url IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD punycode_encoded_host.
+    DATA(mixed) = /apmg/cl_url=>parse( 'https://bücher.%E4%BE%8B%E3%81%88/' )->components.
+    cl_abap_unit_assert=>assert_equals( act = mixed-host exp = 'xn--bcher-kva.xn--r8jz45g' ).
+
+    mixed = /apmg/cl_url=>parse( 'https://%f0%9f%98%80.example/' )->components.
+    cl_abap_unit_assert=>assert_equals( act = mixed-host exp = 'xn--e28h.example' ).
+
+    mixed = /apmg/cl_url=>parse( 'https://b%C3%BCcher%2Bshop.de/' )->components.
+    cl_abap_unit_assert=>assert_equals( act = mixed-host exp = 'xn--bcher+shop-9db.de' ).
+
     DATA(components) = /apmg/cl_url=>parse( 'https://user:pass@b%C3%BCcher.de:8080?q=1#part' )->components.
     cl_abap_unit_assert=>assert_equals( act = components-host exp = 'xn--bcher-kva.de' ).
     cl_abap_unit_assert=>assert_equals( act = components-port exp = '8080' ).
@@ -545,6 +554,9 @@ CLASS ltcl_url IMPLEMENTATION.
 
   METHOD punycode_invalid_host.
     DATA(hosts) = VALUE string_table(
+      ( `bücher%.de` ) ( `bücher%2.de` ) ( `bücher%GG.de` )
+      ( `bücher%C3.de` ) ( `bücher%FF.de` ) ( `bücher%C0%AF.de` )
+      ( `bücher%ED%A0%80.de` ) ( `bücher%F4%90%80%80.de` )
       ( `b%C3%BCcher%20.de` ) ( `bücher%2F.de` ) ( `bücher%23.de` ) ( `bücher%25.de` )
       ( `bücher%00.de` )      ( `bücher%7F.de` ) ( `bücher%09.de` ) ).
     LOOP AT hosts INTO DATA(host).
