@@ -193,59 +193,6 @@ CLASS /apmg/cl_url IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD unescape_host.
-
-    CONSTANTS hex_digits TYPE string VALUE '0123456789ABCDEF'.
-    DATA bytes TYPE xstring.
-
-    IF raw NS '%'.
-      result = raw.
-      RETURN.
-    ENDIF.
-
-    DATA(offset) = 0.
-    DATA(length) = strlen( raw ).
-
-    WHILE offset < length.
-      IF raw+offset(1) <> '%'.
-        result = result && raw+offset(1).
-        offset = offset + 1.
-        CONTINUE.
-      ENDIF.
-
-      CLEAR bytes.
-      WHILE offset < length AND raw+offset(1) = '%'.
-        IF offset + 2 >= length.
-          RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid percent escape in host'.
-        ENDIF.
-        DATA(start) = offset + 1.
-        DATA(pair) = to_upper( raw+start(2) ).
-        IF pair CN hex_digits.
-          RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid percent escape in host'.
-        ENDIF.
-        DATA(high) = find( val = hex_digits sub = pair(1) ).
-        DATA(low) = find( val = hex_digits sub = pair+1(1) ).
-        DATA(octet) = CONV x( high * 16 + low ).
-        CONCATENATE bytes octet INTO bytes IN BYTE MODE.
-        offset = offset + 3.
-      ENDWHILE.
-
-      TRY.
-          DATA(converter) = cl_abap_conv_in_ce=>create(
-            encoding    = 'UTF-8'
-            input       = bytes
-            ignore_cerr = abap_false ).
-          DATA(decoded) = ``.
-          converter->read( IMPORTING data = decoded ).
-          result = result && decoded.
-        CATCH cx_root.
-          RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid UTF-8 escape in host'.
-      ENDTRY.
-    ENDWHILE.
-
-  ENDMETHOD.
-
-
   METHOD domain_to_ascii.
 
     CHECK domain IS NOT INITIAL.
@@ -726,6 +673,58 @@ CLASS /apmg/cl_url IMPLEMENTATION.
     ENDIF.
 
     result = url.
+
+  ENDMETHOD.
+
+
+  METHOD unescape_host.
+
+    CONSTANTS hex_digits TYPE string VALUE '0123456789ABCDEF'.
+    DATA bytes TYPE xstring.
+    data octet TYPE x LENGTH 1.
+
+    IF raw NS '%'.
+      result = raw.
+      RETURN.
+    ENDIF.
+
+    DATA(offset) = 0.
+    DATA(length) = strlen( raw ).
+
+    WHILE offset < length.
+      IF raw+offset(1) <> '%'.
+        result = result && raw+offset(1).
+        offset = offset + 1.
+        CONTINUE.
+      ENDIF.
+
+      CLEAR bytes.
+      WHILE offset < length AND raw+offset(1) = '%'.
+        IF offset + 2 >= length.
+          RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid percent escape in host'.
+        ENDIF.
+        DATA(start) = offset + 1.
+        DATA(pair) = to_upper( raw+start(2) ).
+        IF pair CN hex_digits.
+          RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid percent escape in host'.
+        ENDIF.
+        octet = pair(2).
+        CONCATENATE bytes octet INTO bytes IN BYTE MODE.
+        offset = offset + 3.
+      ENDWHILE.
+
+      TRY.
+          DATA(converter) = cl_abap_conv_in_ce=>create(
+            encoding    = 'UTF-8'
+            input       = bytes
+            ignore_cerr = abap_false ).
+          DATA(decoded) = ``.
+          converter->read( IMPORTING data = decoded ).
+          result = result && decoded.
+        CATCH cx_root.
+          RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid UTF-8 escape in host'.
+      ENDTRY.
+    ENDWHILE.
 
   ENDMETHOD.
 
