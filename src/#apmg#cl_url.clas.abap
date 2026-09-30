@@ -200,16 +200,13 @@ CLASS /apmg/cl_url IMPLEMENTATION.
     " Punycode encoding, not full UTS #46 normalization or IDNA validation.
     DATA(domain_name) = to_lower( domain ).
 
-*    DATA(dot1) = cl_abap_conv_in_ce=>uccpi( 12290 )
-*    DATA(dot2) = cl_abap_conv_in_ce=>uccpi( 65294 )
-*    DATA(dot3) = cl_abap_conv_in_ce=>uccpi( 65377 )*
-*    REPLACE ALL OCCURRENCES OF dot1 IN domain_name WITH '.'
-*    REPLACE ALL OCCURRENCES OF dot2 IN domain_name WITH '.'
-*    REPLACE ALL OCCURRENCES OF dot3 IN domain_name WITH '.'
-
-    REPLACE ALL OCCURRENCES OF '。' IN domain_name WITH '.'.
-    REPLACE ALL OCCURRENCES OF '．' IN domain_name WITH '.'.
-    REPLACE ALL OCCURRENCES OF '｡' IN domain_name WITH '.'.
+    " Replace unicode dots
+    DATA(dot1) = cl_abap_conv_in_ce=>uccpi( 12290 ).
+    DATA(dot2) = cl_abap_conv_in_ce=>uccpi( 65294 ).
+    DATA(dot3) = cl_abap_conv_in_ce=>uccpi( 65377 ).
+    REPLACE ALL OCCURRENCES OF dot1 IN domain_name WITH '.'.
+    REPLACE ALL OCCURRENCES OF dot2 IN domain_name WITH '.'.
+    REPLACE ALL OCCURRENCES OF dot3 IN domain_name WITH '.'.
 
     IF domain_name CA | #%/:<>?@[\\]^\||.
       RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Host contains invalid code point'.
@@ -539,16 +536,20 @@ CLASS /apmg/cl_url IMPLEMENTATION.
 
     " RFC 3492 section 6.1: base=36, tmin=1, tmax=26, skew=38, damp=700.
     DATA(adjusted) = delta.
+
     IF first = abap_true.
       adjusted = adjusted DIV 700.
     ELSE.
       adjusted = adjusted DIV 2.
     ENDIF.
+
     adjusted = adjusted + adjusted DIV count.
+
     WHILE adjusted > 455.
       adjusted = adjusted DIV 35.
       result = result + 36.
     ENDWHILE.
+
     result = result + ( 36 * adjusted ) DIV ( adjusted + 38 ).
 
   ENDMETHOD.
@@ -557,9 +558,11 @@ CLASS /apmg/cl_url IMPLEMENTATION.
   METHOD punycode_delta.
 
     CONSTANTS digits TYPE string VALUE 'abcdefghijklmnopqrstuvwxyz0123456789'.
+
     DATA(remainder) = delta.
     DATA(weight) = 36.
     DATA(threshold) = nmin( val1 = 26 val2 = nmax( val1 = 1 val2 = weight - bias ) ).
+
     WHILE remainder >= threshold.
       DATA(digit) = threshold + ( remainder - threshold ) MOD ( 36 - threshold ).
       result = |{ result }{ digits+digit(1) }|.
@@ -567,6 +570,7 @@ CLASS /apmg/cl_url IMPLEMENTATION.
       weight = weight + 36.
       threshold = nmin( val1 = 26 val2 = nmax( val1 = 1 val2 = weight - bias ) ).
     ENDWHILE.
+
     result = |{ result }{ digits+remainder(1) }|.
 
   ENDMETHOD.
@@ -576,16 +580,21 @@ CLASS /apmg/cl_url IMPLEMENTATION.
 
     " RFC 3492 section 6.3, with explicit signed 32-bit overflow checks.
     CONSTANTS max_integer TYPE i VALUE 2147483647.
+
     DATA(points) = unicode_codepoints( label ).
     DATA(count) = lines( points ).
+
     LOOP AT points INTO DATA(point) WHERE table_line < 128.
       result = |{ result }{ cl_abap_conv_in_ce=>uccpi( point ) }|.
     ENDLOOP.
+
     DATA(basic) = strlen( result ).
     DATA(handled) = basic.
+
     IF handled = count.
       RETURN.
     ENDIF.
+
     IF basic > 0.
       result = |{ result }-|.
     ENDIF.
@@ -593,16 +602,21 @@ CLASS /apmg/cl_url IMPLEMENTATION.
     DATA(next_point) = 128.
     DATA(delta) = 0.
     DATA(bias) = 72.
+
     WHILE handled < count.
       DATA(minimum) = 1114112.
+
       LOOP AT points INTO point WHERE table_line >= next_point.
         minimum = nmin( val1 = minimum val2 = point ).
       ENDLOOP.
+
       IF minimum - next_point > ( max_integer - delta ) DIV ( handled + 1 ).
         RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Punycode overflow'.
       ENDIF.
+
       delta = delta + ( minimum - next_point ) * ( handled + 1 ).
       next_point = minimum.
+
       LOOP AT points INTO point.
         IF point < next_point.
           IF delta = max_integer.
@@ -616,9 +630,11 @@ CLASS /apmg/cl_url IMPLEMENTATION.
           handled = handled + 1.
         ENDIF.
       ENDLOOP.
+
       delta = delta + 1.
       next_point = next_point + 1.
     ENDWHILE.
+
     result = |xn--{ result }|.
 
   ENDMETHOD.
@@ -735,10 +751,12 @@ CLASS /apmg/cl_url IMPLEMENTATION.
     DATA(character) = space.
     DATA(length) = strlen( input ).
     DATA(offset) = 0.
+
     WHILE offset < length.
       character = input+offset(1).
       DATA(point) = cl_abap_conv_out_ce=>uccpi( character ).
       offset = offset + 1.
+
       " ABAP strings use UTF-16; combine surrogate pairs before Bootstring.
       IF point BETWEEN 55296 AND 56319.
         IF offset >= length.
@@ -754,9 +772,11 @@ CLASS /apmg/cl_url IMPLEMENTATION.
       ELSEIF point BETWEEN 56320 AND 57343.
         RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Invalid Unicode in host'.
       ENDIF.
+
       IF point <= 32 OR point = 127.
         RAISE EXCEPTION TYPE /apmg/cx_error_text EXPORTING text = 'Host contains invalid code point'.
       ENDIF.
+
       APPEND point TO result.
     ENDWHILE.
 

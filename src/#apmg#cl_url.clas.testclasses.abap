@@ -476,18 +476,18 @@ CLASS ltcl_url IMPLEMENTATION.
       END OF ty_case,
       ty_cases TYPE STANDARD TABLE OF ty_case WITH EMPTY KEY.
     DATA(cases) = VALUE ty_cases(
-      ( input = 'müller.de'        host = 'xn--mller-kva.de' )
-      ( input = 'BÜCHER.Example'   host = 'xn--bcher-kva.example' )
-      ( input = 'mañana.com'       host = 'xn--maana-pta.com' )
-      ( input = '例え.テスト'           host = 'xn--r8jz45g.xn--zckzah' )
-      ( input = 'россия.рф'        host = 'xn--h1alffa9f.xn--p1ai' )
-      ( input = 'faß.de'           host = 'xn--fa-hia.de' )
-      ( input = 'üüü.de'           host = 'xn--tdaaa.de' )
-      ( input = '😀.example'       host = 'xn--e28h.example' )
-      ( input = 'bücher'           host = 'xn--bcher-kva' )
-      ( input = 'bücher..de.'      host = 'xn--bcher-kva..de.' )
-      ( input = 'www。bücher．de｡'   host = 'www.xn--bcher-kva.de.' )
-      ( input = 'xn--bcher-kva.例え' host = 'xn--bcher-kva.xn--r8jz45g' ) ).
+      ( input = 'müller.de'        host = 'xn--mller-kva.de' ) " lower umlaut
+      ( input = 'BÜCHER.Example'   host = 'xn--bcher-kva.example' ) " upper umlaut
+      ( input = 'faß.de'           host = 'xn--fa-hia.de' ) " german
+      ( input = 'üüü.de'           host = 'xn--tdaaa.de' ) " german
+      ( input = 'mañana.com'       host = 'xn--maana-pta.com' ) " spanish
+      ( input = '例え.テスト'           host = 'xn--r8jz45g.xn--zckzah' ) " japanese
+      ( input = '例子.'              host = 'xn--fsqu00a.' )  " chinese
+      ( input = 'россия.рф'        host = 'xn--h1alffa9f.xn--p1ai' ) " cyrilic
+      ( input = '😀.example'       host = 'xn--e28h.example' ) " emoji
+      ( input = 'bücher..de.'      host = 'xn--bcher-kva..de.' ) " several dots
+      ( input = 'www。bücher．de｡'   host = 'www.xn--bcher-kva.de.' ) " unicode dots
+      ( input = 'xn--bcher-kva.例え' host = 'xn--bcher-kva.xn--r8jz45g' ) ). " japanese
 
     LOOP AT cases INTO DATA(test_case).
       DATA(components) = /apmg/cl_url=>parse( |https://{ test_case-input }/path| )->components.
@@ -554,11 +554,11 @@ CLASS ltcl_url IMPLEMENTATION.
 
   METHOD punycode_invalid_host.
     DATA(hosts) = VALUE string_table(
-      ( `bücher%.de` ) ( `bücher%2.de` ) ( `bücher%GG.de` )
-      ( `bücher%C3.de` ) ( `bücher%FF.de` ) ( `bücher%C0%AF.de` )
+      ( `bücher%.de` )         ( `bücher%2.de` )  ( `bücher%GG.de` )
+      ( `bücher%C3.de` )       ( `bücher%FF.de` ) ( `bücher%C0%AF.de` )
       ( `bücher%ED%A0%80.de` ) ( `bücher%F4%90%80%80.de` )
-      ( `b%C3%BCcher%20.de` ) ( `bücher%2F.de` ) ( `bücher%23.de` ) ( `bücher%25.de` )
-      ( `bücher%00.de` )      ( `bücher%7F.de` ) ( `bücher%09.de` ) ).
+      ( `b%C3%BCcher%20.de` )  ( `bücher%2F.de` ) ( `bücher%23.de` ) ( `bücher%25.de` )
+      ( `bücher%00.de` )       ( `bücher%7F.de` ) ( `bücher%09.de` ) ).
     LOOP AT hosts INTO DATA(host).
       TRY.
           /apmg/cl_url=>parse( |https://{ host }/| ).
